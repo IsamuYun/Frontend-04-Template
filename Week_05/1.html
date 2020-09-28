@@ -1,0 +1,37 @@
+<script>
+function NumberToString(num) {
+    let string = `${num}`;
+    console.log(string);
+    console.log(typeof string);
+    return string;
+}
+
+function NumberToStringFastest(num) {
+    let string = '' + num;
+    console.log(string);
+    console.log(typeof string);
+    return string;
+}
+
+
+NumberToString(281e-26);
+NumberToString(-50);
+NumberToString(-8.025);
+
+NumberToStringFastest(28e-27);
+NumberToStringFastest(-100);
+NumberToStringFastest(+100.0016);
+
+function StringToNumber(string) {
+    let num = string * 1;
+    console.log(num);
+    console.log(typeof num);
+    return num;
+}
+
+StringToNumber("+100.0016");
+StringToNumber("-1");
+StringToNumber("286e-24");
+StringToNumber("GreenDay");
+
+</script>
