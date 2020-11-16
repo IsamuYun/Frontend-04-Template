@@ -1,0 +1,17 @@
+<div id="a" style="width: 100%;height: 300px;background: lightblue;">
+  <div id="b" style="width: 100%; height: 200px; background: lightseagreen"></div>
+</div>
+
+<script>
+let a = document.getElementById("a")
+let b = document.getElementById("b");
+
+a.addEventListener("click", function() { console.log("popup a") });
+b.addEventListener("click", function() { console.log("popup b") });
+
+a.addEventListener("click", function() { console.log("capture a") }, true);
+b.addEventListener("click", function() { console.log("capture b") }, true);
+
+
+
+</script>

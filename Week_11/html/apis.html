@@ -1,0 +1,590 @@
+<script>
+function classify() {
+    // Obtain all API names but exclude classify
+    let names = Object.getOwnPropertyNames(window).filter(n => n !== "classify");
+
+    const ECMA = 'ECMA';
+    const WhatWg = 'WhatWg';
+    const W3C = 'W3C';
+    const WICG = 'WICG';
+    const WebGL = 'WebGL';
+    const Private = 'Private';
+
+    let collections = {
+        ECMA: 0,
+        WhatWg: 0,
+        W3C: 0,
+        WICG: 0,
+        WebGL: 0,
+        Private: 0
+    };
+
+    const filterOut = (names, props, standard) => {
+        if (!standard) {
+            console.log(props);
+        }
+        const set = new Set();
+        props.forEach(p => set.add(p));
+        collections[standard] += props.length;
+        return names.filter(n => !set.has(n));
+    }
+
+    // ECMA Javascript
+    // ECMA 262 Reference from below
+    // https://tc39.es/ecma262/#sec-global-object
+    // https://tc39.es/ecma262/#sec-additional-properties-of-the-global-object
+    const ECMA262 = ["escape", "unescape", "globalThis", "undefined", "NaN", 
+        "Infinity", "eval", "isFinite", "isNaN", "parseFloat",
+        "parseInt", "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent",
+        "Object", "Function", "Array", "ArrayBuffer", "Number",
+        "BigInt", "BigInt64Array", "BigUint64Array", "String", "Boolean",
+        "DataView", "Date", "Map", "Set", "WeakMap",
+        "RegExp", "Error", "EvalError", "RangeError", "ReferenceError",
+        "SyntaxError", "TypeError", "URIError", "FinalizationRegistry", "Float32Array",
+        "Float64Array", "Int8Array", "Int16Array", "Uint32Array", "Int32Array", 
+        "Uint8Array", "Uint16Array", "Uint8ClampedArray", "Promise", "SharedArrayBuffer",
+        "Symbol", "WeakSet", "Atomics", "JSON", "Math", 
+        "Proxy", "Reflect", "Option", "Image", "Audio", "console",
+    ];
+    const ESNEXT = ["AggregateError"];
+    names = filterOut(names, ECMA262, ECMA);
+    names = filterOut(names, ESNEXT, ECMA);
+    
+    // http://www.ecma-international.org/ecma-402/5.0/index.html#Title
+    names = names.filter(e => e != "Intl");
+
+    // DOM API
+    // https://dom.spec.whatwg.org/
+    const DOM_NodeAPI = [];
+    for (const name of names) {
+        try {
+            if (typeof(window[name]) === 'undefined') {
+                continue;
+            } 
+            if ((window[name] !== null) && (window[name].prototype instanceof Node)) {
+                DOM_NodeAPI.push(name);
+            }
+        }
+        catch(e) {
+            console.error(e);
+        }
+    }
+    DOM_NodeAPI.push("Node");
+    DOM_NodeAPI.push("NodeList");
+    DOM_NodeAPI.push("RadioNodeList");
+    names = filterOut(names, DOM_NodeAPI, WhatWg);
+    // Document
+    // https://dom.spec.whatwg.org/#interface-document
+    names = filterOut(names, ["DOMImplementation", "NamedNodeMap"], WhatWg);
+    // DOM Events
+    // https://dom.spec.whatwg.org/#events
+    names = filterOut(names, ["event", "Event", "EventTarget", "CustomEvent"], WhatWg);
+    const DOM_Events = ["PopStateEvent", "PointerEvent", "UIEvent", "TextEvent", "WheelEvent",
+    "BeforeInstallPromptEvent", "PageTransitionEvent", "FocusEvent", "MouseEvent",
+    "HashChangeEvent", "ErrorEvent", "DragEvent", "CompositionEvent", "BeforeUnloadEvent",
+    "ClipboardEvent", "SecurityPolicyViolationEvent", "KeyboardEvent", "InputEvent",
+    ];
+    names = filterOut(names, DOM_Events, WhatWg);
+    // Aborting & Mutation
+    names = filterOut(names, ["AbortController", "AbortSignal", "MutationObserver", "MutationRecord"], WhatWg);
+    // XPath
+    // https://dom.spec.whatwg.org/#xpath
+    names = filterOut(names, ["XPathResult", "XPathExpression", "XPathEvaluator"], WhatWg);
+    // Range
+    // https://dom.spec.whatwg.org/#range
+    names = filterOut(names, ["Range", "StaticRange", "Selection", "getSelection"], WhatWg);
+    // DOMTokenList
+    // https://dom.spec.whatwg.org/#interface-domtokenlist
+    names = filterOut(names, ["DOMTokenList"], WhatWg);
+    // URL
+    // https://url.spec.whatwg.org/
+    names = filterOut(names, ["URL", "URLSearchParams"], WhatWg);
+    // Travsersal
+    names = filterOut(names, ["NodeIterator", "TreeWalker", "NodeFilter"], WhatWg);
+    // ·ÏÆú
+    names = filterOut(names, ["DOMStringlist", "DOMStringMap", "DOMError", "MutationEvent", "captureEvents", "releaseEvents", "external", "External"], WhatWg);
+
+    
+    // webkit private
+    names = names.filter( e => !e.match(/^WebKit/));
+    names = names.filter( e => !e.match(/^webkit/));
+
+    // https://notifications.spec.whatwg.org
+    names = filterOut(names, ["Notification", "ServiceWorkerRegistration", "NotificationEvent", "ServiceWorkerGlobalScope"], WhatWg);
+
+    // webapi
+    // https://html.spec.whatwg.org/multipage/#toc-webappapis
+    names = filterOut(names, ["atob", "btoa", "setTimeout", "setInterval", "clearTimeout",
+    "clearInterval", "Plugin", "PluginArray", "MimeType", "MimeTypeArray",
+    "Image", "Blob", "Animation", "AnimationEffect", "AnimationEvent",
+    "AnimationPlaybackEvent", "AnimationTimeline", "requestAnimationFrame", "cancelAnimationFrame", "MessageEvent",
+    "MessagePort", "MessageChannel", "EventSource", "CloseEvent", "BroadcastChannel", "PromiseRejectionEvent"
+    ], WhatWg);
+
+    // Canvas
+    // https://html.spec.whatwg.org/multipage/canvas.html
+    names = filterOut(names, ["CanvasRenderingContext2D", "OffscreenCanvasRenderingContext2D", "Path2D", "ImageBitmap", "ImageData",
+    "TextMetrics", "CanvasGradient", "CanvasPattern", "ImageBitmapRenderingContext", "createImageBitmap"], WhatWg);
+
+    // Worker
+    // https://html.spec.whatwg.org/multipage/worker.html
+    names = filterOut(names, ["Worker", "SharedWorker", "ServiceWorker", "ServiceWorkerContainer", "Cache", "caches",
+    "CacheStorage", "Worklet", "NavigationPreloadManager"], WhatWg);
+
+    // https://html.spec.whatwg.org/#window
+    const WINDOW_API = ["window", "self", "document", "name", "location", 
+        "history", "customElements", "locationbar", "menubar", "personalbar",
+        "scrollbars", "statusbar", "toolbar", "status", "close", "closed",
+        "stop", "focus", "blur", "frames", "length", "top", "opener",
+        "parent", "frameElement", "open", "navigator", "clientInformation", "applicationCache",
+        "originIsolated", "alert", "confirm", "prompt", "print", "postMessage", "find",
+        "offscreenBuffering", "styleMedia", "queueMicrotask"];
+    names = filterOut(names, WINDOW_API, WhatWg);
+    names = filterOut(names, ["Navigator", "BarProp", "Window", "History", "Location", "ApplicationCache", "Notification", "ElementInternals", "CustomElementRegistry"], WhatWg);
+
+    // https://fetch.spec.whatwg.org
+    names = filterOut(names, ["fetch", "Request", "Response", "Headers"], WhatWg);
+
+    // https://fullscreen.spec.whatwg.org
+    names = filterOut(names, ["requestFullscreen", "exitFullscreen", "FullscreenNavigationUI"], WhatWg);
+
+    // https://encoding.spec.whatwg.org/#dom-textencoder
+    names = filterOut(names, ["TextDecoder", "TextDecoderStream", "TextDecoderCommon", "TextEncoder", "TextEncoderCommon", "TextEncoderStream"], WhatWg);
+
+    // https://streams.spec.whatwg.org/#blqs-class
+    names = filterOut(names, ["ReadableStream", "ReadableStreamDefaultReader", "ReadableStreamBYOBReader", "ReadableStreamDefaultController",
+        "ReadableByteStreamController", "ReadableStreamBYOBRequest", "WritableStream", "WritableStreamDefaultWriter", "WritableStreamDefaultController",
+        "TransformStream", "TransformStreamDefaultController", "ByteLengthQueuingStrategy", "CountQueuingStrategy"], WhatWg);
+
+    // https://html.spec.whatwg.org/
+    {
+        let interfaces = new Set();
+        objects = ["ApplicationCache", "AudioTrack", "AudioTrackList", "BarProp", "BeforeUploadEvent",
+        "BroadcastChannel", "CanvasGradient", "CanvasPattern", "CanvasRenderingContext2D", "CloseEvent",
+        "CustomElementRegistry", "DOMParser", "DOMStringList", "DOMStringMap", "DataTransfer",
+        "DataTransferItem", "DedicatedWorkerGlobalScope", "Document", "DragEvent", "ElementInternals",
+        "ErrorEvent", "External", "FormDataEvent", "HTMLCollection", "HTMLAllCollection", "HTMLAnchorElemnt",
+        "HTMLAreaElement", "HTMLAudioElement", "HTMLBRElement", "HTMLBaseElement", "HTMLBodyElement",
+        "HTMLButtonElement", "HTMLCanvasElement", "HTMLDListElement", "HTMLDataElement", "HTMLDataListElement",
+        "HTMLDetailsElement", "HTMLDialogElement", "HTMLDirectoryElement", "HTMLDivElement", "HTMLElement",
+        "HTMLEmbedElement", "HTMLFieldSetElement", "HTMLFontElement", "HTMLFormControlsCollection", "HTMLFormElement",
+        "HTMLFrameElement", "HTMLHRElement", "HTMLHeadElement", "HTMLHeadingElement", "HTMLHtmlElement",
+        "HTMLIFrameElement", "HTMLImageElement", "HTMLInputElement", "HTMLLIElement", "HTMLLabelElement",
+        "HTMLLegendElement", "HTMLLinkElement", "HTMLMapElement", "HTMLMarqueeElement", "HTMLMediaElement",
+        "HTMLMenuElement", "HTMLMetaElement", "HTMLMeterElement", "HTMLModElement", "HTMLOListElement",
+        "HTMLObjectElement", "HTMLOptGroupElement", "HTMLOptionElement", "HTMLOptionsCollection", "HTMLOutputElement",
+        "HTMLParagraphElement", "HTMLParamElement", "HTMLPictureElement", "HTMLPreElement", "HTMLProgressElement",
+        "HTMLQuoteElement", "HTMLScriptElement", "HTMLSelectElement", "HTMLSlotElement", "HTMLSourceElement",
+        "HTMLSpanElement", "HTMLStyleElement", "HTMLTableCaptionElement", "HTMLTableCellElement", "HTMLTableColElement",
+        "HTMLTableElement", "HTMLTableRowElement", "HTMLTableSectionElement", "HTMLTemplateElement", "HTMLTextAreaElement",
+        "HTMLTimeElement", "HTMLTitleElement", "HTMLTrackElement", "HTMLUListElement", "HTMLUnknownElement",
+        "HTMLVideoElement", "HashChangeEvent", "History", "ImageBitmap", "ImageBitmapRenderingContext",
+        "ImageData", "Location", "MediaError", "MessageChannel", "MessageEvent", 
+        "MessagePort", "MimeType", "MimeTypeArray", "Navigator", "OffscreenCanvas",
+        "OffscreenCanvasRenderingContext2D", "PageTransitionEvent", "Path2D", "Plugin",
+        "PluginArray", "PopStateEvent", "PromiseRejectionEvent", "RadioNodeList", "SharedWorker",
+        "SharedWorkerGlobalScope", "Storage", "StorageEvent", "SubmitEvent", "TextMetrics",
+        "TextTrack", "TextTrackCue", "TextTrackCueList", "TimeRanges", "TrackEvent",
+        "ValidityState", "VideoTrack", "VideoTrackList", "WebSocket", "Window",
+        "Worker", "WorkerGlobalScope", "WorkerLocation", "WorkerNavigator", "Worklet", "WorkletGlobalScope"];
+        objects.forEach(o => interfaces.add(o));
+        names = names.filter(e => !interfaces.has(e));
+    }
+    // window global event handlers
+    // https://html.spec.whatwg.org/multipage/webappapis.html#globaleventhandlers
+    const Global_Event_Handlers = [];
+    for (const name of names) {
+        if (/^on/.test(name)) {
+            Global_Event_Handlers.push(name);
+        }
+    }
+    names = filterOut(names, Global_Event_Handlers, WhatWg);
+
+    names = filterOut(names, ["origin"], WhatWg);
+
+    // webstorag
+    // https://html.spec.whatwg.org/multipage/#toc-webstorage
+    names = filterOut(names, ["Storage", "sessionStorage", "localStorage", "StorageEvent", "StorageManager"], WhatWg);
+
+    // xhr
+    // https://xhr.spec.whatwg.org/
+    names = filterOut(names, ["XMLHttpRequestUpload", "XMLHttpRequestEventTarget", "XMLHttpRequest", "XMLSerializer", "FormData", "ProgressEvent"], WhatWg);
+
+    // Drag And Drop
+    names = filterOut(names, ["DragEvent", "DataTransfer", "DataTransferItemList", "DataTransferItem"], WhatWg);
+
+    // Others
+    names = filterOut(names, ["ValidityState", "SubmitEvent", "FormDataEvent", "defaultStatus", "defaultstatus"], WhatWg);
+
+    // WebGL
+    // https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15
+    names = filterOut(names, ["WebGLVertexArrayObject", "WebGLTransformFeedback", "WebGLSync", 
+        "WebGLSampler", "WebGLQuery", "WebGLUniformLocation", "WebGLTexture", "WebGLShaderPrecisionFormat",
+        "WebGLShader", "WebGLRenderingContext", "WebGLRenderbuffer", "WebGLProgram", "WebGLFramebuffer",
+        "WebGLContextEvent", "WebGLBuffer", "WebGLActiveInfo", "WebGL2RenderingContext"], WebGL);
+
+    // https://www.w3.org/TR/webaudio/
+    names = filterOut(names, ["AudioContext", "AudioNode", "AnalyserNode", "AudioBuffer", "AudioBufferSourceNode",
+        "AudioDestinationNode", "AudioParam", "AudioParamMap", "AudioListener", "AudioWorklet", "AudioWorkletGlobalScope",
+        "AudioWorkletNode", "AudioWorkletProcessor", "BiquadFilterNode", "ChannelMergerNode", "ChannelSplitterNode",
+        "ConstantSourceNode", "ConvolverNode", "DelayNode", "DynamicsCompressorNode", "GainNode",
+        "IIRFilterNode", "MediaElementAudioSourceNode", "MediaStreamAudioSourceNode", "MediaStreamTrackAudioSourceNode",
+        "MediaStreamAudioDestinationNode", "PannerNode", "PeriodicWave", "OscillatorNode", "StereoPannerNode",
+        "WaveShaperNode", "ScriptProcessorNode", "AudioProcessingEvent", "OfflineAudioContext", "OfflineAudioCompletionEvent",
+        "BaseAudioContext", "AudioScheduledSourceNode"], W3C);
+
+    // https://wicg.github.io/BackgroundSync/spec/#sync-manager-interface
+    names = filterOut(names, ["SyncManager"], WICG);
+
+    /*
+// https://dom.spec.whatwg.org
+names = filterOut(names, ["Event", "Window", "CustomEvent", "EventTarget", "AbortController", "AbortSignal",
+    "NonElementParentNode", "DocumentOrShadowRoot", "ParentNode", "NonDocumentTypeChildNode", "ChildNode",
+    "Slottable", "NodeList", "HTMLCollection", "MutationObserver", "MutationRecord",
+    "Node", "Document", "DOMImplementation", "DocumentType", "DocumentFragment", 
+    "ShadowRoot", "Element", "NamedNodeMap", "Attr", "CharacterData", "Text", "CDATASection",
+    "ProcessingInstruction", "Comment", "AbstractRange", "StaticRange", "Range",
+    "NodeIterator", "TreeWalker", "NodeFilter", "DOMTokenList", "XPathResult",
+    "XPathExpression", "XPathEvaluatorBase", "XPathEvaluator"]);
+    */
+
+    // CSS/SVG WG
+    // https://drafts.csswg.org/cssom/
+    const CSSOMAPI = [];
+    for (const name of names) {
+        if (/^CSS/.test(name)) {
+            CSSOMAPI.push(name);
+        }
+    }
+    names = filterOut(names, CSSOMAPI, W3C);
+    names = filterOut(names, ["getComputedStyle", "matchMedia", "MediaQueryListEvent", "MediaQueryList", "MediaList", "StyleSheetList", "StyleSheet", "StylePropertyMapReadOnly", "StylePropertyMap"], W3C);
+    names = filterOut(names, ["moveTo", "moveBy", "resizeTo", "resizeBy", "scroll", "scrollTo", "scrollBy", "scrollX", "scrollY",
+    "screenX", "screenY", "innerHeight", "innerWidth", "outerHeight", "outerWidth", "pageXOffset", "pageYOffset", "devicePixelRatio",
+    "screenLeft", "screenTop"], W3C);
+
+    // CSS Transitions
+    // https://drafts.csswg.org/css-transitions/
+    names = filterOut(names, ["TransitionEvent", "TransformStream"], W3C);
+
+    // Web animations
+    // https://drafts.csswg.org/web-animations-1/
+    names = filterOut(names, ["Animation", "KeyframeEffect", "AnimationEffect", "AnimationPlaybackEvent", "DocumentTimeline", "AnimationTimeline"], W3C);
+
+    // Font Face
+    names = filterOut(names, ["FontFaceSetLoadEvent", "FontFace"], W3C);
+
+    // https://drafts.csswg.org/resize-observer/
+    names = filterOut(names, ["ResizeObserverEntry", "ResizeObserverSize", "ResizeObserver"], W3C);
+
+    // SVG WG
+    // https://www.3w.org/TR/SVG2/
+    const SVG_API = [];
+    for (const name of names) {
+        if (/^SVG/.test(name)) {
+            SVG_API.push(name);
+        }
+    }
+    names = filterOut(names, SVG_API, W3C);
+
+    // WebRTC
+    // https://w3c.github.io/webrtc-pc/
+    const WebRTC_API = [];
+    for (const name of names) {
+        if (/^RTC/.test(name)) {
+            WebRTC_API.push(name);
+        }
+    }
+    names = filterOut(names, WebRTC_API, W3C);
+
+    // w3c mediacapture-main
+    // https://w3c.github.io/mediacapture-main/
+    names = filterOut(names, ["ImageCapture", "MediaStream", "MediaStreamTrackEvent", "MediaStreamTrack", "MediaStreamEvent",
+    "MediaSettingsRange", "MediaRecorder", "MediaEncryptedEvent", "MediaCapabilities", "BlobEvent", "PhotoCapabilities", 
+    "OverconstrainedError", "InputDeviceInfo", "CanvasCaptureMediaStreamTrack",
+    "MediaDevices", "MediaKeyMessageEvent", "MediaKeySession", "MediaKeyStatusMap", "MediaKeySystemAccess",
+    "MediaKeys", "MediaMetadata", "MediaDeviceInfo"], W3C);
+
+    // Web Midi
+    // https://webaudio.github.io/web-midi-api/
+    const WEBMIDI_API = [];
+    for (const name of names) {
+        if (/^MIDI/.test(name)) {
+            WEBMIDI_API.push(name);
+        }
+    }
+    names = filterOut(names, WEBMIDI_API, W3C);
+
+    // GamePad
+    // https://w3c.github.io/gamepad/extensions.htm
+    const Gamepad_API = [];
+    for (const name of names) {
+        if (/^Gamepad/.test(name)) {
+            Gamepad_API.push(name);
+        }
+    }
+    names = filterOut(names, Gamepad_API, W3C);
+
+    // Geolocation
+    // https://w3c.github.io/geolocation-api/
+    const Geolocation_API = [];
+    for (const name of names) {
+        if (/^Geolocation/.test(name)) {
+            Geolocation_API.push(name);
+        }
+    }
+    names = filterOut(names, Geolocation_API, W3C);
+
+    // https://w3c.github.io/battery/
+    names = filterOut(names, ["BatteryManager"], W3C);
+
+    // https://w3c.github.io/deviceorientation/
+    names = filterOut(names, ["DeviceMotionEvent", "DeviceMotionEventAcceleration", "DeviceMotionEventRotationRate", "DeviceOrientationEvent"], W3C);
+
+    // https://w3c.github.io/screen-orientation/
+    names = filterOut(names, ["screen", "Screen", "ScreenOrientation"], W3C);
+
+    // Web Authentication
+    // https://w3c.github.io/webauthn/
+    const WebAuthentication_API = [];
+    for (const name of names) {
+        if (/^Authenticator/i.test(name)) {
+            WebAuthentication_API.push(name);
+        }
+    }
+    names = filterOut(names, WebAuthentication_API, W3C);
+
+    // trusted types
+    // https://w3c.github.io/webappsec-trusted-types/dist/spec/
+    const Trusted_API = [];
+    for (const name of names) {
+        if (/^Trusted/i.test(name)) {
+            Trusted_API.push(name);
+        }
+    }
+    names = filterOut(names, Trusted_API, W3C);
+
+    // w3c persentation
+    // https://w3c.github.io/presentation-api/
+    const WebPresentation_API = [];
+    for (const name of names) {
+        if (/^Presentation/.test(name)) {
+            WebPresentation_API.push(name);
+        }
+    }
+    names = filterOut(names, WebPresentation_API, W3C);
+
+    // Web VTT
+    names = filterOut(names, ["VTTCue"], W3C);
+
+    // Clipboard
+    names = filterOut(names, ["Clipboard", "ClipboardItem"], W3C);
+
+    // Push
+    names = filterOut(names, ["PushManager", "PushSubscription", "PushSubscriptionOptions"], W3C);
+
+    // WakeLock
+    names = filterOut(names, ["WakeLock", "WakeLockSentinel"], W3C);
+
+    // IntersectionObserver
+    names = filterOut(names, ["IntersectionObserver", "IntersectionObserverEntry"], W3C);
+
+    names = filterOut(names, ["Permissions", "PermissionStatus"], W3C);
+
+    names = filterOut(names, ["Credential", "CredentialsContainer", "FederateCredential", "PasswordCredential", "PublicKeyCredential"], W3C);
+
+    names = filterOut(names, ["FeaturePolicy"], W3C);
+
+    names = filterOut(names, ["ReportingObserver"], W3C);
+
+    names = filterOut(names, ["isSecureContext"], W3C);
+
+    names = filterOut(names, ["RemotePlayback"], W3C);
+
+    // SensorAPI
+    // https://www.w3.org/TR/generic-sensor
+    const Sensor_API = ["Sensor", "SensorErrorEvent", "AbsoluteOrientationSensor", "LinearAccelerationSensor", "OrientationSensor", "RelativeOrientationSensor"];
+    for (const name of names) {
+        try {
+            if (typeof(window[name]) === 'undefined') {
+                continue;
+            }
+            if (window[name] !== null && window[name].protype instanceof Sensor) {
+                Sensor_API.push(name);
+            }
+        }
+        catch (e) {
+            console.error(e);
+        }
+    }
+    names = filterOut(names, Sensor_API, W3C);
+
+    // w3 IndexedDB
+    // https://www.w3.org/TR/IndexedDB/
+    const IndexedDB_API = [];
+    for (const name of names) {
+        if (/^DB/.test(name)) {
+            IndexedDB_API.push(name);
+        }
+        if (/^IDB/.test(name)) {
+            IndexedDB_API.push(name);
+        }
+    }
+    names = filterOut(names, IndexedDB_API, W3C);
+    names = filterOut(names, ["openDatabase", "indexedDB"], W3C);
+
+    // w3 navigation-timing
+    // https://www.w3.org/TR/navigation-timing/
+    const Performance_API = [];
+    for (const name of names) {
+        if (/^Performance/i.test(name)) {
+            Performance_API.push(name);
+        }
+    }
+    names = filterOut(names, Performance_API, W3C);
+    names = filterOut(names, ["TaskAttributionTiming"], W3C);
+
+    // https://www.w3.org/TR/payment-handler/
+    const PaymentAPI = [];
+    for (const name of names) {
+        if (/^Payment/i.test(name)) {
+            PaymentAPI.push(name);
+        }
+    }
+    names = filterOut(names, PaymentAPI, W3C);
+
+    // Crypto API
+    names = filterOut(names, ["Crypto", "crypto", "CryptoKey", "SubtleCrypto"], W3C);
+
+    // Idle Callback
+    names = filterOut(names, ["requestIdleCallback", "cancelIdleCallback", "IdleDeadline"], W3C);
+
+    // immersive-web webxr
+    // https://www.w3.org/TR/webxr/
+    const WebXRAPI = [];
+    for (const name of names) {
+        if (/^XR/.test(name)) {
+            WebXRAPI.push(name);
+        }
+    }
+    names = filterOut(names, WebXRAPI, W3C);
+
+    names = filterOut(names, ["WebAssembly"], W3C);
+
+    // W3C Media Source
+    // https://html.spec.whatwg.org/multipage/media.html
+    names = filterOut(names, ["MediaSource", "MediaError", "SourceBuffer", "SourceBufferList", "VideoPlaybackQuality", "VideoTrackList", "AudioTrackList", "AudioTrack", "VideoTrack", "TextTrackList", "TextTrack", "TextTrackCueList", "TextTrackCue", "TimeRanges", "TrackEvent"], W3C);
+
+    names = filterOut(names, ["DOMRectReadOnly", "DOMRectList", "DOMRect", "DOMException", "DOMPointReadOnly", "DOMPoint", "DOMMatrixReadOnly", "DOMMatrix", "DOMQuad"], W3C);
+
+    // W3C Media Session
+    names = filterOut(names, ["MediaMetaData", "MediaSession"], W3C);
+
+    names = filterOut(names, ["PictureInPictureEvent", "PictureInPictureWindow"], W3C);
+
+    names = filterOut(names, ["Touch", "TouchEvent", "TouchList", "InputDeviceCapabilities"], W3C);
+
+    names = filterOut(names, ["WebSocketStream"], WICG);
+
+    const WebSpeechAPI = [];
+    for (const name of names) {
+        if (/^Speech/i.test(name)) {
+            WebSpeechAPI.push(name);
+        }
+    }
+    names = filterOut(names, WebSpeechAPI, W3C);
+
+    const WebUSBAPI = [];
+    for (const name of names) {
+        if (/^USB/.test(name)) {
+            WebUSBAPI.push(name);
+        }
+    }
+    names = filterOut(names, WebUSBAPI, WICG);
+
+    names = filterOut(names, ["ServiceWorkerRegistration", "SyncManager"], WICG);
+
+    names = filterOut(names, ["EventCounts"], WICG);
+
+    names = filterOut(names, ["DecompressionStream", "CompressionStream"], WICG);
+
+    names = filterOut(names, ["Lock", "LockManager"], WICG);
+
+    names = filterOut(names, ["Keyboard", "KeyboardLayoutMap"], WICG);
+
+    names = filterOut(names, ["LayoutShift", "LayoutShiftAttribution"], WICG);
+
+    names = filterOut(names, ["LargestContentfulPaint"], WICG);
+
+    names = filterOut(names, ["NetworkInformation"], WICG);
+
+    names = filterOut(names, ["PeriodicSyncManager"], WICG);
+
+    names = filterOut(names, ["FragmentDirective"], WICG);
+
+    const WebBleAPI = [];
+    for (const name of names) {
+        if (/^Bluetooth/.test(name)) {
+            WebBleAPI.push(name);
+        }
+    }
+    names = filterOut(names, WebBleAPI, WICG);
+
+    names = filterOut(names, ['VisualViewport', "visualViewport"], WICG);
+
+    names = filterOut(names, ["BackgroundFetchManager", "BackgroundFetchRecord", "BackgroundFetchRegistration"], WICG);
+
+    names = filterOut(names, ["FileReader", "FileList", "File"], WICG);
+
+    // khronos WebGL
+    const WebGL2API = [];
+    for (const name of names) {
+        if (/^WebGL/.test(name)) {
+            WebGL_Prefix.push(name);
+        }
+    }
+    names = filterOut(names, WebGL2API, WebGL);
+
+    const Webkit_Private = [];
+    for (const name of names) {
+        if (/^webkit/i.test(name)) {
+            Webkit_Private.push(name);
+        }
+    }
+    names = filterOut(names, Webkit_Private, WebGL);
+
+    names = filterOut(names, ["XSLTProcessor"], Private);
+
+    // Chrome
+    names = filterOut(names, ["BarcodeDetector"], Private);
+
+    names = filterOut(names, ["UserActivation"], Private);
+
+    names = filterOut(names, ["chrome"], Private);
+
+    // DOM Parser
+    names = filterOut(names, ["DOMParser", "XMLSerializer"], Private);
+
+    names = filterOut(names, ["originIsolationRestricted", "crossOriginIsolated", "originPolicyIds"], WICG);
+
+    names = filterOut(names, ["SerialPortInfo", "Serial", "SerialPort", "SerialConnectionEvent"], WICG);
+
+    names = filterOut(names, ["FileSystemDirectoryHandle", "FileSystemHandle", "FileSystemFileHandle", "FileSystemWritableFileStream", "showDirectoryPicker", "showOpenFilePicker", "showSaveFilePicker", "chooseFileSystemEntries", "getOriginPrivateDirectory"], WICG);
+
+    names = filterOut(names, ["NDEFMessage", "NDEFReader", "NDEFReadingEvent", "NDEFRecord", "NDEFWriter"], WICG);
+
+    names = filterOut(names, ["SendStream", "ReceiveStream", "QuicTransport", "BidirectionalStream"], WICG);
+
+    names = filterOut(names, ["CookieChangeEvent", "CookieStore", "CookieStoreManager", "cookieStore"], WICG);
+
+    names = filterOut(names, ["WeakRef", "Accelerometer", "FederatedCredential", "Gyroscope"], Private);
+    console.log(names);
+
+    return {
+        names,
+        collections
+    }
+}
+
+classify();
+
+</script>
